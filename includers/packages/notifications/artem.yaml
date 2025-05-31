@@ -1,0 +1,28 @@
+# Уведомления о присутствии для Артёма
+artem_notifications:
+  automation:
+  - id: artem_presence_notification
+    alias: Artem Presence Notification
+    description: Sends notifications when Artem's presence changes
+    triggers:
+    - trigger: state
+      entity_id: binary_sensor.is_artem_at_home
+    conditions:
+    - condition: template
+      value_template: "{{ trigger.to_state.state != trigger.from_state.state }}"
+    actions:
+    - variables:
+        presence_sensor: binary_sensor.is_artem_at_home
+        device_tracker: device_tracker.iphone13pro_artem
+        user_name: "Artem"
+    - service: notify.notify_2smart_home_group
+      data:
+        message: >
+          {{ variables.user_name }} {{ 'arrived home 🏡' if trigger.to_state.state == 'on' else 'left home 🚪' }} at <b>{{ states(variables.presence_sensor)|as_timestamp|timestamp_custom('%Y-%m-%d %H:%M:%S') }}</b> (Wi-Fi 📡: {{ states(variables.device_tracker)|as_timestamp|timestamp_custom('%Y-%m-%d %H:%M:%S') }}, Frigate 📷: {{ state_attr(variables.presence_sensor, 'frigate_last_detected')|as_timestamp|timestamp_custom('%Y-%m-%d %H:%M:%S') if state_attr(variables.presence_sensor, 'frigate_last_detected') else 'N/A' }})
+        target: !secret telegram_2Smart_home_notification_topic
+    - service: notify.all_users
+      data:
+        title: Presence Status
+        message: >
+          {{ variables.user_name }} {{ 'arrived home' if trigger.to_state.state == 'on' else 'left home' }}
+    mode: single
