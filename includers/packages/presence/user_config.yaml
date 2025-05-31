@@ -1,0 +1,27 @@
+# Настройки пользователей для отслеживания присутствия
+user_config:
+  users:
+    artem:
+      user_id: artem
+      user_name: Artem
+      device_tracker: device_tracker.iphone13pro_artem
+      ssid: sensor.iphone_artem_ssid
+      presence_sensor: binary_sensor.is_artem_at_home
+      frigate_detected: binary_sensor.artem_frigate_detected
+      double_take_detected: binary_sensor.artem_double_take_detected
+    # elfi:
+    #   user_id: elfi
+    #   user_name: Alya
+    #   device_tracker: device_tracker.iphone14pro_elfi
+    #   ssid: sensor.iphone_elfi_ssid
+    #   presence_sensor: binary_sensor.is_elfi_at_home
+    #   frigate_detected: binary_sensor.elfi_frigate_detected
+    #   double_take_detected: binary_sensor.elfi_double_take_detected
+
+  home_wifi_ssid: "!secret home_wifi_ssid"
+  frigate_topic: frigate/events
+  frigate_label: person
+  frigate_presence_timeout: 60 * 5 # 300 секунд
+  double_take_topic: double_take/events
+  double_take_type: match
+  double_take_presence_timeout: 60 * 5 # 300 секунд

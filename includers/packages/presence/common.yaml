@@ -1,0 +1,46 @@
+# Общие автоматизации для отслеживания присутствия
+common_presence:
+  automation:
+  # Frigate: обновление времени для всех пользователей
+  - id: frigate_presence_update
+    alias: Frigate Presence Update
+    triggers:
+    - trigger: mqtt
+      topic: "{{ packages.user_config.frigate_topic }}"
+    conditions:
+    - condition: template
+      value_template: >
+        {% set data = trigger.payload_json %} {% set config = packages.user_config %} {{ data.type == 'end' and data.after.label == config.frigate_label and data.after.sub_label in config.users.values()|map(attribute='user_name')|list }}
+    actions:
+    - variables:
+        config: "{{ packages.user_config }}"
+        user: >
+          {% for user_id, user_data in config.users.items() %} {% if data.after.sub_label == user_data.user_name %} {{ user_data }} {% endif %} {% endfor %}
+    - service: mqtt.publish
+      data:
+        topic: "homeassistant/{{ user.frigate_detected }}/attributes"
+        payload: >
+          {"last_detected": "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"}
+    mode: single
+
+  # Double Take: обновление времени для всех пользователей
+  - id: double_take_presence_update
+    alias: Double Take Presence Update
+    triggers:
+    - trigger: mqtt
+      topic: "{{ packages.user_config.double_take_topic }}"
+    conditions:
+    - condition: template
+      value_template: >
+        {% set data = trigger.payload_json %} {% set config = packages.user_config %} {{ data.type == config.double_take_type and data.name in config.users.values()|map(attribute='user_name')|list }}
+    actions:
+    - variables:
+        config: "{{ packages.user_config }}"
+        user: >
+          {% for user_id, user_data in config.users.items() %} {% if data.name == user_data.user_name %} {{ user_data }} {% endif %} {% endfor %}
+    - service: mqtt.publish
+      data:
+        topic: "homeassistant/{{ user.double_take_detected }}/attributes"
+        payload: >
+          {"last_detected": "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"}
+    mode: single

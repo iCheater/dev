@@ -1,0 +1,24 @@
+# Логика присутствия для Артёма
+artem:
+  binary_sensor:
+  - platform: template
+    sensors:
+      artem_frigate_detected:
+        friendly_name: "Artem Frigate Detected"
+        value_template: >
+          {% set frigate_detected = 'binary_sensor.artem_frigate_detected' %} {% set last_detected = state_attr(frigate_detected, 'last_detected') %} {% set seconds_since_frigate = (now() - last_detected|as_datetime).total_seconds() if last_detected else 999999 %} {% set frigate_presence_timeout = 60 * 5 %} {{ seconds_since_frigate < frigate_presence_timeout }}
+  - platform: template
+    sensors:
+      artem_double_take_detected:
+        friendly_name: "Artem Double Take Detected"
+        value_template: >
+          {% set double_take_detected = 'binary_sensor.artem_double_take_detected' %} {% set last_detected = state_attr(double_take_detected, 'last_detected') %} {% set seconds_since_double_take = (now() - last_detected|as_datetime).total_seconds() if last_detected else 999999 %} {% set double_take_presence_timeout = 60 * 5 %} {{ seconds_since_double_take < double_take_presence_timeout }}
+  - platform: template
+    sensors:
+      is_artem_at_home:
+        friendly_name: "Is Artem at Home"
+        value_template: >
+          {% set config = packages.user_config %} {% set device_tracker = config.users.artem.device_tracker %} {% set ssid = config.users.artem.ssid %} {% set frigate_detected = config.users.artem.frigate_detected %} {% set double_take_detected = config.users.artem.double_take_detected %} {{ states(device_tracker) == 'home' or
+            states(ssid) == config.home_wifi_ssid or
+            is_on(frigate_detected) or
+            is_on(double_take_detected) }}
